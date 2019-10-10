@@ -1,10 +1,6 @@
 import { useReducer, useRef, useMemo, useEffect } from 'react';
 import { pipe, makeSubject, subscribe, Operator } from 'wonka';
 
-const is = typeof Object.is !== 'function'
-  ? (x: any, y: any) => (x === y && (x !== 0 || 1 / x === 1 / y)) || (x !== x && y !== y)
-  : Object.is;
-
 interface State<R, T = R> {
   active: boolean;
   output: R;
@@ -25,7 +21,7 @@ export const useSubjectValue = <T, R>(
 
   // This forces an update when the given output hasn't been stored yet
   const [, forceUpdate] = useReducer((x: number, output: R) => {
-    if (!is(output, state.current.output)) {
+    if (output !== state.current.output) {
       state.current.output = output;
       return x + 1;
     } else {
@@ -52,7 +48,7 @@ export const useSubjectValue = <T, R>(
       if (!state.current.active) {
         // If this is called by the user, not as part of an update, then we always just update immediately
         next(input);
-      } else if (!('input' in state.current) || !is(input, state.current.input)) {
+      } else if (!('input' in state.current) || input !== state.current.input) {
         // This is only safe in concurrent mode, because a second run wouldn't trigger another update,
         // but our effect will be updating the output regardless
         state.current.input = input;
