@@ -1,4 +1,4 @@
-import { StrictMode } from 'react';
+import { createElement as h, createContext, useContext, StrictMode, ReactNode } from 'react';
 import { pipe, makeSubject, merge, map, delay } from 'wonka';
 import { renderHook, act } from '@testing-library/react-hooks';
 import { useStreamValue, useSubjectValue } from './index';
@@ -118,3 +118,25 @@ const describeUseSubjectValue = (wrapper: any) => {
 describe('useSubjectValue', () => describeUseSubjectValue(undefined));
 describe('useSubjectValue (concurrent)', () => describeUseSubjectValue(StrictMode));
 
+it('correctly updates children', async () => {
+  const OutputContext = createContext(0);
+
+  const wrapper = ({ children }: { children?: ReactNode }) => {
+    const res = useStreamValue(s => merge([
+      pipe(s, map(x => x + 1)),
+      pipe(s, map(x => x + 2), delay(1))
+    ]), 0, 0);
+
+    return h(OutputContext.Provider, { value: res }, children);
+  };
+
+  const { result, waitForNextUpdate } = renderHook(
+    () => useContext(OutputContext),
+    { wrapper }
+  );
+
+  expect(result.current).toEqual(1);
+
+  await waitForNextUpdate();
+  expect(result.current).toEqual(2);
+});
