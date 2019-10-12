@@ -21,12 +21,8 @@ export const useSubjectValue = <T, R>(
 
   // This forces an update when the given output hasn't been stored yet
   const [, forceUpdate] = useReducer((x: number, output: R) => {
-    if (output !== state.current.output) {
-      state.current.output = output;
-      return x + 1;
-    } else {
-      return x;
-    }
+    state.current.output = output;
+    return x + 1;
   }, 0);
 
   const [update, unsubscribe] = useMemo<Internals<T>>(() => {
