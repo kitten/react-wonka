@@ -2,36 +2,33 @@ import { useReducer, useRef, useMemo, useEffect } from 'react';
 import { pipe, makeSubject, subscribe, Operator } from 'wonka';
 
 interface State<R, T = R> {
-  active: boolean;
+  active?: boolean;
   output: R;
   input?: T;
 }
 
-type Internals<T> = [
-  (input: T) => void,
-  () => void
-];
+type Internals<T> = [(input: T) => void, () => void];
 
 export const useSubjectValue = <T, R>(
   fn: Operator<T, R>,
   input: T,
   init: R
 ): [R, (value: T) => void] => {
-  const state = useRef<State<R, T>>({ active: false, output: init });
+  const state = useRef<State<R, T>>({ output: init });
 
   // This forces an update when the given output hasn't been stored yet
-  const [, forceUpdate] = useReducer((x: number, output: R) => {
+  const force = useReducer((x: number, output: R) => {
     state.current.output = output;
     return x + 1;
   }, 0);
 
-  const [update, unsubscribe] = useMemo<Internals<T>>(() => {
+  const { 0: update, 1: unsubscribe } = useMemo<Internals<T>>(() => {
     const [input$, next] = makeSubject<T>();
     const [unsubscribe] = pipe(
       fn(input$),
       subscribe((output: R) => {
         if (!state.current.active) {
-          forceUpdate(output);
+          force[1](output);
         } else {
           // The result of the input stream updates the latest output if it's an immediate result
           state.current.output = output;
@@ -47,8 +44,7 @@ export const useSubjectValue = <T, R>(
       } else if (!('input' in state.current) || input !== state.current.input) {
         // This is only safe in concurrent mode, because a second run wouldn't trigger another update,
         // but our effect will be updating the output regardless
-        state.current.input = input;
-        next(input);
+        next((state.current.input = input));
       }
     };
 
@@ -66,5 +62,8 @@ export const useSubjectValue = <T, R>(
   return [state.current.output, update];
 };
 
-export const useStreamValue = <T, R>(fn: Operator<T, R>, input: T, init: R): R =>
-  useSubjectValue<T, R>(fn, input, init)[0];
+export const useStreamValue = <T, R>(
+  fn: Operator<T, R>,
+  input: T,
+  init: R
+): R => useSubjectValue<T, R>(fn, input, init)[0];
