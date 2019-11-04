@@ -17,18 +17,18 @@ export const useSubjectValue = <T, R>(
   const state = useRef<State<R, T>>({ output: init });
 
   // This forces an update when the given output hasn't been stored yet
-  const force = useReducer((x: number, output: R) => {
+  const [, force] = useReducer((x: number, output: R) => {
     state.current.output = output;
     return x + 1;
   }, 0);
 
-  const { 0: update, 1: unsubscribe } = useMemo<Internals<T>>(() => {
+  const [update, unsubscribe] = useMemo<Internals<T>>(() => {
     const [input$, next] = makeSubject<T>();
     const [unsubscribe] = pipe(
       fn(input$),
       subscribe((output: R) => {
         if (!state.current.active) {
-          force[1](output);
+          force(output);
         } else {
           // The result of the input stream updates the latest output if it's an immediate result
           state.current.output = output;
