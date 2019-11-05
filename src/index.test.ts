@@ -19,6 +19,25 @@ const describeUseStreamValue = (wrapper: any) => {
     expect(result.current).toEqual([1]);
   });
 
+  it('supports two immediately returned values', () => {
+    let input = 0;
+
+    const { result, rerender } = renderHook(
+      () => {
+        const resA = useStreamValue(s => pipe(s, map(x => 'a' + x)), input, 'a');
+        const resB = useStreamValue(s => pipe(s, map(x => 'b' + x)), input, 'b');
+        return [resA, resB];
+      },
+      { wrapper }
+    );
+
+    expect(result.current).toEqual(['a0', 'b0']);
+
+    input = 1;
+    rerender();
+    expect(result.current).toEqual(['a1', 'b1']);
+  });
+
   it('supports delayed updates', async () => {
     let input = 0;
 
