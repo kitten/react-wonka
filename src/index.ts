@@ -39,6 +39,7 @@ export const useSubjectValue = <T, R>(
     // When the input has changed this causes a new update on the input stream
     const update = (input: T) => {
       if (!state.current.active) {
+        if (state.current.unsubscribe) state.current.unsubscribe();
         // If this is called by the user, not as part of an update, then we always just update immediately
         next(input);
       } else if (!('input' in state.current) || input !== state.current.input) {
@@ -48,6 +49,7 @@ export const useSubjectValue = <T, R>(
       }
     };
 
+    state.current.unsubscribe = unsubscribe;
     return [update, unsubscribe];
   }, []);
 
