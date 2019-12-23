@@ -1,4 +1,4 @@
-import { useReducer, useRef, useMemo, useEffect } from 'react';
+import { useReducer, useRef, useMemo, useEffect, useLayoutEffect } from 'react';
 import { pipe, makeSubject, subscribe, Operator } from 'wonka';
 
 interface State<R, T = R> {
@@ -7,10 +7,10 @@ interface State<R, T = R> {
   input?: T;
 }
 
-type Internals<T> = [
-  (input: T) => void,
-  () => void
-];
+const useIsomorphicEffect =
+  typeof window === 'undefined' ? useEffect : useLayoutEffect;
+
+type Internals<T> = [(input: T) => void, any];
 
 export const useSubjectValue = <T, R>(
   fn: Operator<T, R>,
@@ -25,19 +25,8 @@ export const useSubjectValue = <T, R>(
     return x + 1;
   }, 0);
 
-  const [update, unsubscribe] = useMemo<Internals<T>>(() => {
+  const [update, input$] = useMemo<Internals<T>>(() => {
     const [input$, next] = makeSubject<T>();
-    const [unsubscribe] = pipe(
-      fn(input$),
-      subscribe((output: R) => {
-        if (!state.current.active) {
-          forceUpdate(output);
-        } else {
-          // The result of the input stream updates the latest output if it's an immediate result
-          state.current.output = output;
-        }
-      })
-    );
 
     // When the input has changed this causes a new update on the input stream
     const update = (input: T) => {
@@ -52,7 +41,24 @@ export const useSubjectValue = <T, R>(
       }
     };
 
-    return [update, unsubscribe];
+    return [update, input$];
+  }, []);
+
+  useIsomorphicEffect(() => {
+    // @ts-ignore
+    const [unsubscribe] = pipe(
+      fn(input$),
+      subscribe((output: R) => {
+        if (!state.current.active) {
+          forceUpdate(output);
+        } else {
+          // The result of the input stream updates the latest output if it's an immediate result
+          state.current.output = output;
+        }
+      })
+    );
+
+    return unsubscribe;
   }, []);
 
   // Set active flag to true while updating and call it with new input
@@ -60,11 +66,11 @@ export const useSubjectValue = <T, R>(
   update(input);
   state.current.active = false;
 
-  // Let React call unsubscribe on unmount
-  useEffect(() => unsubscribe, []);
-
   return [state.current.output, update];
 };
 
-export const useStreamValue = <T, R>(fn: Operator<T, R>, input: T, init: R): R =>
-  useSubjectValue<T, R>(fn, input, init)[0];
+export const useStreamValue = <T, R>(
+  fn: Operator<T, R>,
+  input: T,
+  init: R
+): R => useSubjectValue<T, R>(fn, input, init)[0];
