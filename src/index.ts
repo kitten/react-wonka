@@ -1,5 +1,5 @@
 import { useReducer, useRef, useMemo, useEffect, useLayoutEffect } from 'react';
-import { pipe, makeSubject, subscribe, Operator } from 'wonka';
+import { pipe, makeSubject, subscribe, Operator, Source } from 'wonka';
 
 interface State<R, T = R> {
   active: boolean;
@@ -10,7 +10,7 @@ interface State<R, T = R> {
 const useIsomorphicEffect =
   typeof window === 'undefined' ? useEffect : useLayoutEffect;
 
-type Internals<T> = [(input: T) => void, any];
+type Internals<T> = [(input: T) => void, Source<T>];
 
 export const useSubjectValue = <T, R>(
   fn: Operator<T, R>,
@@ -45,7 +45,6 @@ export const useSubjectValue = <T, R>(
   }, []);
 
   useIsomorphicEffect(() => {
-    // @ts-ignore
     const [unsubscribe] = pipe(
       fn(input$),
       subscribe((output: R) => {
