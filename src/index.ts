@@ -49,22 +49,18 @@ export const useSubjectValue = <T, R>(
     const [unsubscribe] = pipe(
       fn(input$),
       subscribe((output: R) => {
-        if (!state.current.active) {
-          forceUpdate(output);
-        } else {
-          // The result of the input stream updates the latest output if it's an immediate result
-          state.current.output = output;
-        }
+        forceUpdate(output);
       })
     );
 
     return unsubscribe;
   }, []);
 
-  // Set active flag to true while updating and call it with new input
-  state.current.active = true;
-  update(input);
-  state.current.active = false;
+  useIsomorphicEffect(() => {
+    state.current.active = true;
+    update(input);
+    state.current.active = false;
+  }, [input]);
 
   return [state.current.output, update];
 };
