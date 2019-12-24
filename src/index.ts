@@ -47,9 +47,7 @@ export const useSubjectValue = <T, R>(
   useIsomorphicEffect(() => {
     const [unsubscribe] = pipe(
       fn(input$),
-      subscribe((output: R) => {
-        forceUpdate(output);
-      })
+      subscribe(forceUpdate)
     );
 
     return unsubscribe;
