@@ -1,4 +1,10 @@
-import { createElement as h, createContext, useContext, StrictMode, ReactNode } from 'react';
+import {
+  createElement as h,
+  createContext,
+  useContext,
+  StrictMode,
+  ReactNode,
+} from 'react';
 import { pipe, makeSubject, merge, map, delay } from 'wonka';
 import { renderHook, act } from '@testing-library/react-hooks';
 import { useStreamValue, useSubjectValue } from './index';
@@ -8,7 +14,16 @@ const describeUseStreamValue = (wrapper: any) => {
     let input = 0;
 
     const { result, rerender } = renderHook(
-      () => useStreamValue(s => pipe(s, map(x => [x])), input, [-1]),
+      () =>
+        useStreamValue(
+          s =>
+            pipe(
+              s,
+              map(x => [x])
+            ),
+          input,
+          [-1]
+        ),
       { wrapper }
     );
 
@@ -24,8 +39,24 @@ const describeUseStreamValue = (wrapper: any) => {
 
     const { result, rerender } = renderHook(
       () => {
-        const resA = useStreamValue(s => pipe(s, map(x => 'a' + x)), input, 'a');
-        const resB = useStreamValue(s => pipe(s, map(x => 'b' + x)), input, 'b');
+        const resA = useStreamValue(
+          s =>
+            pipe(
+              s,
+              map(x => 'a' + x)
+            ),
+          input,
+          'a'
+        );
+        const resB = useStreamValue(
+          s =>
+            pipe(
+              s,
+              map(x => 'b' + x)
+            ),
+          input,
+          'b'
+        );
         return [resA, resB];
       },
       { wrapper }
@@ -42,9 +73,18 @@ const describeUseStreamValue = (wrapper: any) => {
     let input = 0;
 
     const { result, waitForNextUpdate, rerender } = renderHook(
-      () => useStreamValue(s => {
-        return pipe(s, map(x => x + 1), delay(0));
-      }, input, 0),
+      () =>
+        useStreamValue(
+          s => {
+            return pipe(
+              s,
+              map(x => x + 1),
+              delay(0)
+            );
+          },
+          input,
+          0
+        ),
       { wrapper }
     );
 
@@ -63,10 +103,23 @@ const describeUseStreamValue = (wrapper: any) => {
     let input = 0;
 
     const { result, waitForNextUpdate, rerender } = renderHook(
-      () => useStreamValue(s => merge([
-        pipe(s, map(x => x + 1)),
-        pipe(s, map(x => x + 2), delay(1))
-      ]), input, 0),
+      () =>
+        useStreamValue(
+          s =>
+            merge([
+              pipe(
+                s,
+                map(x => x + 1)
+              ),
+              pipe(
+                s,
+                map(x => x + 2),
+                delay(1)
+              ),
+            ]),
+          input,
+          0
+        ),
       { wrapper }
     );
 
@@ -82,14 +135,15 @@ const describeUseStreamValue = (wrapper: any) => {
   });
 
   it('supports passive updates', async () => {
-    const [input$, next] = makeSubject<number>();
-    const { result } = renderHook(
-      () => useStreamValue(() => input$, 0, 0),
-      { wrapper }
-    );
+    const { source: input$, next } = makeSubject<number>();
+    const { result } = renderHook(() => useStreamValue(() => input$, 0, 0), {
+      wrapper,
+    });
 
     expect(result.current).toEqual(0);
-    act(() => { next(1) });
+    act(() => {
+      next(1);
+    });
     expect(result.current).toEqual(1);
   });
 
@@ -97,7 +151,16 @@ const describeUseStreamValue = (wrapper: any) => {
     let input = 0;
 
     const { result, rerender } = renderHook(
-      () => useStreamValue(s => pipe(s, map(() => [])), input, []),
+      () =>
+        useStreamValue(
+          s =>
+            pipe(
+              s,
+              map(() => [])
+            ),
+          input,
+          []
+        ),
       { wrapper }
     );
 
@@ -113,7 +176,8 @@ const describeUseStreamValue = (wrapper: any) => {
 };
 
 describe('useStreamValue', () => describeUseStreamValue(undefined));
-describe('useStreamValue (concurrent)', () => describeUseStreamValue(StrictMode));
+describe('useStreamValue (concurrent)', () =>
+  describeUseStreamValue(StrictMode));
 
 const describeUseSubjectValue = (wrapper: any) => {
   it('supports manual inputs', () => {
@@ -124,7 +188,8 @@ const describeUseSubjectValue = (wrapper: any) => {
         const res = useSubjectValue(s => s, 0, 0);
         update = res[1];
         return res[0];
-      }, { wrapper }
+      },
+      { wrapper }
     );
 
     expect(result.current).toBe(0);
@@ -135,16 +200,29 @@ const describeUseSubjectValue = (wrapper: any) => {
 };
 
 describe('useSubjectValue', () => describeUseSubjectValue(undefined));
-describe('useSubjectValue (concurrent)', () => describeUseSubjectValue(StrictMode));
+describe('useSubjectValue (concurrent)', () =>
+  describeUseSubjectValue(StrictMode));
 
 it('correctly updates children', async () => {
   const OutputContext = createContext(0);
 
   const wrapper = ({ children }: { children?: ReactNode }) => {
-    const res = useStreamValue(s => merge([
-      pipe(s, map(x => x + 1)),
-      pipe(s, map(x => x + 2), delay(1))
-    ]), 0, 0);
+    const res = useStreamValue(
+      s =>
+        merge([
+          pipe(
+            s,
+            map(x => x + 1)
+          ),
+          pipe(
+            s,
+            map(x => x + 2),
+            delay(1)
+          ),
+        ]),
+      0,
+      0
+    );
 
     return h(OutputContext.Provider, { value: res }, children);
   };

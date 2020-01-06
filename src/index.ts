@@ -7,7 +7,7 @@ interface State<R, T = R> {
   input?: T;
 }
 
-type Internals<T> = [(input: T) => void, () => void];
+type Internals<T> = [(input: T) => void, (_?: void) => void];
 
 export const useSubjectValue = <T, R>(
   fn: Operator<T, R>,
@@ -23,9 +23,9 @@ export const useSubjectValue = <T, R>(
   }, 0);
 
   const [update, unsubscribe] = useMemo<Internals<T>>(() => {
-    const [input$, next] = makeSubject<T>();
-    const [unsubscribe] = pipe(
-      fn(input$),
+    const { source, next } = makeSubject<T>();
+    const { unsubscribe } = pipe(
+      fn(source),
       subscribe((output: R) => {
         if (!state.current.active) {
           force(output);
