@@ -64,7 +64,7 @@
     "terser": "^4.3.4",
     "ts-jest": "^24.1.0",
     "typescript": "^3.6.3",
-    "wonka": "https://github.pika.dev/kitten/wonka/commit/db8cf7d58ba43d3a8314026f8a5f81ec6bcce5be"
+    "wonka": "4.0.0-rc.4"
   },
   "prettier": {
     "singleQuote": true,

@@ -4830,9 +4830,10 @@ wide-align@^1.1.0:
   dependencies:
     string-width "^1.0.2 || 2"
 
-"wonka@https://github.pika.dev/kitten/wonka/commit/db8cf7d58ba43d3a8314026f8a5f81ec6bcce5be":
-  version "3.2.2"
-  resolved "https://github.pika.dev/kitten/wonka/commit/db8cf7d58ba43d3a8314026f8a5f81ec6bcce5be#2a1890082b75c36fc9f8bc153ef515fa83507dff"
+wonka@4.0.0-rc.4:
+  version "4.0.0-rc.4"
+  resolved "https://registry.yarnpkg.com/wonka/-/wonka-4.0.0-rc.4.tgz#d1f3f02da44c6b50fb3d463c72c92a8fa8368ae4"
+  integrity sha512-gIFR1GrKYvPHMeq8l2Umxqkr0HOmgAV5ikXnilNfoq7FgUXY8j88gSF6gFi5rtfUGX4T/E3SLvtqm5ovyT1k3A==
 
 wordwrap@~0.0.2:
   version "0.0.3"
