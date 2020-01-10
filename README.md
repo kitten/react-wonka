@@ -37,10 +37,26 @@ This library exposes a two hooks to solve this problem, **useSubjectValue** and 
 
 ## API
 
-### `useStreamValue`
+### `useOperator`
 
 ```js
-const result = useStreamValue(makeStream, input, init);
+const [result, update] = useOperator(makeStream, input, init);
+```
+
+This hook is the same as `useStreamValue`, but it returns the `result`
+and an `update` function.
+
+The `update` function can be used to force an additional value to be sent
+to the internal stream that `makeStream` receives. It's like `useReducer`'s
+dispatch function or like a `forceUpdate` function.
+
+This can be an effective replacement for `useReducer` that can integrate
+asynchronous side-effects or complex changes cleanly.
+
+### `useOperatorValue`
+
+```js
+const result = useOperatorValue(makeStream, input, init);
 ```
 
 Returns a stateful value that has been produced by a stream, which emits the
@@ -65,34 +81,24 @@ triggering updates for asynchronous ones.
 
 ```js
 import { pipe, map, delay, merge } from 'wonka';
-import { useStreamValue } from 'react-wonka';
-
-useStreamValue(
-  x => merge([
-    pipe(x, map(x => x + 1)),
-    pipe(x, map(x => x + 2), delay(10)),
-  ]),
+import { useOperatorValue } from 'react-wonka';
+useOperatorValue(
+  x =>
+    merge([
+      pipe(
+        x,
+        map(x => x + 1)
+      ),
+      pipe(
+        x,
+        map(x => x + 2),
+        delay(10)
+      ),
+    ]),
   input,
   0
 );
-
 // For input = 0 this returns:
 // - `1` immediately
 // - then updates and returns `2` after 10ms
 ```
-
-### `useSubjectValue`
-
-```js
-const [result, update] = useSubjectValue(makeStream, input, init);
-```
-
-This hook is the same as `useStreamValue`, but it returns the `result`
-and an `update` function.
-
-The `update` function can be used to force an additional value to be sent
-to the internal stream that `makeStream` receives. It's like `useReducer`'s
-dispatch function or like a `forceUpdate` function.
-
-This can be an effective replacement for `useReducer` that can integrate
-asynchronous side-effects or complex changes cleanly.
