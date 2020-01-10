@@ -23,7 +23,8 @@ the same every time, since you'll be handling:
 
 - Some kind of changing prop or other input
 - Subscribing and unsubscribing
-- Synchronous / Asynchronous updates
+- Safety around React Concurrent Mode
+- Cooperating with React's effects and scheduling system
 
 It's very common to create a Wonka source using [`makeSubject`](https://wonka.kitten.sh/api/sources#makesubject)
 from a changing prop. Or you may also be subscribing (and unsubscribing) to a new source every time some
@@ -33,7 +34,8 @@ Wonka streams can additionally be synchronous or asynchronous, so integrating th
 React's updates, while taking advantage of synchronous results is hard, and especially complicated with
 Concurrent Mode.
 
-This library exposes a two hooks to solve this problem, **useSubjectValue** and **useStreamValue**.
+This library exposes a two hooks to solve this problem, **useOperator** and **useOperatorValue**.
+The latter is just a convenience alias for the first.
 
 ## API
 
@@ -43,7 +45,7 @@ This library exposes a two hooks to solve this problem, **useSubjectValue** and 
 const [result, update] = useOperator(makeStream, input, init);
 ```
 
-This hook is the same as `useStreamValue`, but it returns the `result`
+This hook is the same as `useOperatorValue`, but it returns the `result`
 and an `update` function.
 
 The `update` function can be used to force an additional value to be sent
