@@ -1,6 +1,6 @@
 {
   "name": "react-wonka",
-  "version": "2.0.0",
+  "version": "1.0.3",
   "description": "Several hooks for using Wonka streams with React",
   "repository": "https://www.github.com/kitten/react-wonka",
   "files": [
@@ -36,7 +36,8 @@
   "license": "MIT",
   "peerDependencies": {
     "react": ">= 16.8.0",
-    "wonka": ">= 3.0.0"
+    "scheduler": ">= 0.18.0",
+    "wonka": ">= 4.0.0"
   },
   "devDependencies": {
     "@babel/core": "^7.6.2",

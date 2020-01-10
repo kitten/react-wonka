@@ -31,6 +31,11 @@ interface State<R, T = R> {
 const isServerSide = typeof window === 'undefined';
 const useIsomorphicEffect = !isServerSide ? useLayoutEffect : useEffect;
 
+export const useOperatorValue = <T, R>(
+  fn: Operator<T, R>,
+  input: T,
+  init: R
+): R => useOperator<T, R>(fn, input, init)[0];
 /**
  * Creates a stream of `input` as it's changing and pipes this stream
  * into the operator which creates what becomes the output of this hook.
