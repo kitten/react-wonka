@@ -1,6 +1,6 @@
 {
   "name": "react-wonka",
-  "version": "1.0.3",
+  "version": "2.0.0",
   "description": "Several hooks for using Wonka streams with React",
   "repository": "https://www.github.com/kitten/react-wonka",
   "files": [
