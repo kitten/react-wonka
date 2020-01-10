@@ -37,54 +37,10 @@ This library exposes a two hooks to solve this problem, **useSubjectValue** and 
 
 ## API
 
-### `useStreamValue`
+### `useOperator`
 
 ```js
-const result = useStreamValue(makeStream, input, init);
-```
-
-Returns a stateful value that has been produced by a stream, which emits the
-changing `input` values.
-
-The hook accepts a `makeStream` function which is called once using an input
-Wonka stream. This stream will synchronously receive `input` every time it
-changes and on initial mount.
-
-You can then use any [Wonka operator](https://wonka.kitten.sh/api/operators) to
-transform this input stream and return a new stream. The values that your
-stream emits will be returned as `result`.
-
-The `init` argument determines the initial value for `result`, in case your
-stream is asynchronous. It's important to provide some kind of value for it
-so that your stream may also emit values at a later point, while React is
-allowed to keep rendering immediately.
-
-You can use both asynchronous or synchronous streams (or mixed ones) with
-this hook. It will correctly return synchronous values immediately, while
-triggering updates for asynchronous ones.
-
-```js
-import { pipe, map, delay, merge } from 'wonka';
-import { useStreamValue } from 'react-wonka';
-
-useStreamValue(
-  x => merge([
-    pipe(x, map(x => x + 1)),
-    pipe(x, map(x => x + 2), delay(10)),
-  ]),
-  input,
-  0
-);
-
-// For input = 0 this returns:
-// - `1` immediately
-// - then updates and returns `2` after 10ms
-```
-
-### `useSubjectValue`
-
-```js
-const [result, update] = useSubjectValue(makeStream, input, init);
+const [result, update] = useOperator(makeStream, input, init);
 ```
 
 This hook is the same as `useStreamValue`, but it returns the `result`
