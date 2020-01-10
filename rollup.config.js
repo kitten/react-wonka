@@ -42,7 +42,10 @@ const plugins = [
   }),
   commonjs({
     ignoreGlobal: true,
-    include: /\/node_modules\//
+    include: /\/node_modules\//,
+    namedExports: {
+      'node_modules/scheduler/index.js': Object.keys(require('scheduler'))
+    }
   }),
   typescript({
     typescript: require('typescript'),
