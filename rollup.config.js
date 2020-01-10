@@ -48,8 +48,6 @@ const plugins = [
     }
   }),
   typescript({
-    typescript: require('typescript'),
-    cacheRoot: './node_modules/.cache/.rts2_cache',
     useTsconfigDeclarationDir: true,
     tsconfigOverride: {
       compilerOptions: {

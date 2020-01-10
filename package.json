@@ -62,11 +62,11 @@
     "rollup-plugin-commonjs": "^10.1.0",
     "rollup-plugin-node-resolve": "^5.2.0",
     "rollup-plugin-terser": "^5.1.2",
-    "rollup-plugin-typescript2": "^0.24.3",
+    "rollup-plugin-typescript2": "^0.25.3",
     "scheduler": "^0.18.0",
     "terser": "^4.3.4",
     "ts-jest": "^24.1.0",
-    "typescript": "^3.6.3",
+    "typescript": "^3.7.4",
     "wonka": "^4.0.2"
   },
   "prettier": {
