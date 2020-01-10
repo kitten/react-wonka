@@ -173,7 +173,7 @@ describe('useOperatorValue', () => describeUseOperatorValue(undefined));
 describe('useOperatorValue (concurrent)', () =>
   describeUseOperatorValue(StrictMode));
 
-const describeuseOperator = (wrapper: any) => {
+const describeUseOperator = (wrapper: any) => {
   it('supports manual inputs', () => {
     let update: (x: number) => void;
 
@@ -195,5 +195,5 @@ const describeuseOperator = (wrapper: any) => {
   });
 };
 
-describe('useOperator', () => describeuseOperator(undefined));
-describe('useOperator (concurrent)', () => describeuseOperator(StrictMode));
+describe('useOperator', () => describeUseOperator(undefined));
+describe('useOperator (concurrent)', () => describeUseOperator(StrictMode));
