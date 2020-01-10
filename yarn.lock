@@ -529,6 +529,11 @@
   dependencies:
     "@types/node" "*"
 
+"@types/scheduler@^0.16.1":
+  version "0.16.1"
+  resolved "https://registry.yarnpkg.com/@types/scheduler/-/scheduler-0.16.1.tgz#18845205e86ff0038517aab7a18a62a6b9f71275"
+  integrity sha512-EaCxbanVeyxDRTQBkdLb3Bvl/HK7PBK6UJjsSixB0iHKoWxE5uu2Q/DgtpOhPIojN0Zl1whvOd7PoHs2P0s5eA==
+
 "@types/stack-utils@^1.0.1":
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/@types/stack-utils/-/stack-utils-1.0.1.tgz#0a851d3bd96498fa25c33ab7278ed3bd65f06c3e"
@@ -4118,6 +4123,14 @@ scheduler@^0.16.1:
     loose-envify "^1.1.0"
     object-assign "^4.1.1"
 
+scheduler@^0.18.0:
+  version "0.18.0"
+  resolved "https://registry.yarnpkg.com/scheduler/-/scheduler-0.18.0.tgz#5901ad6659bc1d8f3fdaf36eb7a67b0d6746b1c4"
+  integrity sha512-agTSHR1Nbfi6ulI0kYNK0203joW2Y5W4po4l+v03tOoiJKpTBbxpNhWDvqc/4IcOw+KLmSiQLTasZ4cab2/UWQ==
+  dependencies:
+    loose-envify "^1.1.0"
+    object-assign "^4.1.1"
+
 semver-compare@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/semver-compare/-/semver-compare-1.0.0.tgz#0dee216a1c941ab37e9efb1788f6afc5ff5537fc"
@@ -4830,10 +4843,10 @@ wide-align@^1.1.0:
   dependencies:
     string-width "^1.0.2 || 2"
 
-wonka@^3.2.1:
-  version "3.2.1"
-  resolved "https://registry.yarnpkg.com/wonka/-/wonka-3.2.1.tgz#f66123fabbb260f23a4e89f1526317169203e258"
-  integrity sha512-LpquZ9PJtYJ31AlMPp5tEba1y+S+wUmY7OyFLGZCmGSNO1ZOTTZGp/HbieFzP5fVJ9fWXCus3ecgDjwAssHSGg==
+wonka@^4.0.2:
+  version "4.0.2"
+  resolved "https://registry.yarnpkg.com/wonka/-/wonka-4.0.2.tgz#32004bab7373da2150711fc703f7f12404dfdcb7"
+  integrity sha512-3Iwtr5agZFMs9j3c1fLn44FKi62G4XlNMbTluMbsF4fmJE6DDgVvkq7HwVOExWXOyGEfs8awOTTOebWbqG4quw==
 
 wordwrap@~0.0.2:
   version "0.0.3"

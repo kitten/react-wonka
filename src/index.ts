@@ -1,69 +1,146 @@
-import { useReducer, useRef, useMemo, useEffect } from 'react';
-import { pipe, makeSubject, subscribe, Operator } from 'wonka';
+/* eslint-disable @typescript-eslint/no-use-before-define */
+/* eslint-disable react-hooks/exhaustive-deps */
+
+import {
+  useReducer,
+  useRef,
+  useEffect,
+  useLayoutEffect,
+  Dispatch,
+} from 'react';
+
+import { Subject, Operator, makeSubject, subscribe, pipe } from 'wonka';
+
+import {
+  CallbackNode,
+  unstable_scheduleCallback as scheduleCallback,
+  unstable_cancelCallback as cancelCallback,
+  unstable_getCurrentPriorityLevel as getPriorityLevel,
+} from 'scheduler';
+
+type TeardownFn = () => void;
 
 interface State<R, T = R> {
-  active?: boolean;
-  output: R;
-  input?: T;
+  subject: Subject<T>;
+  onValue: Dispatch<R>;
+  teardown: null | TeardownFn;
+  task: null | CallbackNode;
+  value: R;
 }
 
-type Internals<T> = [(input: T) => void, () => void];
+const isServerSide = typeof window === 'undefined';
+const useIsomorphicEffect = !isServerSide ? useLayoutEffect : useEffect;
 
-export const useSubjectValue = <T, R>(
-  fn: Operator<T, R>,
+/**
+ * Creates a stream of `input` as it's changing and pipes this stream
+ * into the operator which creates what becomes the output of this hook.
+ *
+ * This hooks supports creating a synchronous, stateful value that is
+ * updated immediately on mount and is then updated using normal effects.
+ * It has been built to be safe for normal-mode, concurrent-mode,
+ * strict-mode and suspense.
+ */
+export const useOperator = <T, R>(
+  operator: Operator<T, R>,
   input: T,
-  init: R
-): [R, (value: T) => void] => {
-  const state = useRef<State<R, T>>({ output: init });
+  init?: R
+): [R, Dispatch<T>] => {
+  const subscription = useRef<State<R, T>>({
+    subject: makeSubject<T>(),
+    value: init as R,
+    onValue: (value: R) => {
+      // Before the effect triggers we update the initial value synchronously
+      subscription.current.value = value;
+    },
+    teardown: null,
+    task: null,
+  });
 
-  // This forces an update when the given output hasn't been stored yet
-  const [, force] = useReducer((x: number, output: R) => {
-    state.current.output = output;
+  // This is called from effects to update the current output value
+  const [, setValue] = useReducer((x: number, value: R) => {
+    subscription.current.value = value;
     return x + 1;
   }, 0);
 
-  const [update, unsubscribe] = useMemo<Internals<T>>(() => {
-    const [input$, next] = makeSubject<T>();
-    const [unsubscribe] = pipe(
-      fn(input$),
-      subscribe((output: R) => {
-        if (!state.current.active) {
-          force(output);
-        } else {
-          // The result of the input stream updates the latest output if it's an immediate result
-          state.current.output = output;
-        }
-      })
+  // On mount, subscribe to the operator using the subject and schedule a teardown using scheduler (1)
+  if (subscription.current.teardown === null) {
+    observe(
+      operator,
+      subscription.current,
+      /* shouldScheduleTeardown */ !isServerSide
     );
+    // Send the initial input value to the operator; this may call `onValue` synchronously
+    subscription.current.subject.next(input);
+    if (isServerSide && subscription.current.teardown !== null) {
+      (subscription.current.teardown as any)();
+    }
+  }
 
-    // When the input has changed this causes a new update on the input stream
-    const update = (input: T) => {
-      if (!state.current.active) {
-        // If this is called by the user, not as part of an update, then we always just update immediately
-        next(input);
-      } else if (!('input' in state.current) || input !== state.current.input) {
-        // This is only safe in concurrent mode, because a second run wouldn't trigger another update,
-        // but our effect will be updating the output regardless
-        next((state.current.input = input));
+  // We utilise useLayoutEffect to cancel the scheduled teardown again
+  // This works because A) useLayoutEffect runs synchronously after mount
+  // during the commit phase, and B) if it runs we know that useEffect
+  // is also going to run.
+  useIsomorphicEffect(() => {
+    // Cancel the scheduled teardown
+    if (subscription.current.task !== null) {
+      cancelCallback(subscription.current.task);
+    }
+
+    // On unmount we call the teardown manually to stop the subscription
+    return () => {
+      if (subscription.current.teardown !== null) {
+        subscription.current.teardown();
       }
     };
-
-    return [update, unsubscribe];
   }, []);
 
-  // Set active flag to true while updating and call it with new input
-  state.current.active = true;
-  update(input);
-  state.current.active = false;
+  useEffect(() => {
+    const isInitial = subscription.current.onValue !== setValue;
+    // Once the effect runs, we update onValue to update this component properly
+    // instead of mutating
+    subscription.current.onValue = setValue;
 
-  // Let React call unsubscribe on unmount
-  useEffect(() => unsubscribe, []);
+    // If the subscription got cancelled, which may happen during long suspense phases (?),
+    // we restart it here without scheduling a teardown
+    if (subscription.current.teardown === null) {
+      observe(
+        operator,
+        subscription.current,
+        /* shouldScheduleTeardown */ false
+      );
+    }
 
-  return [state.current.output, update];
+    // If the input value has changed (except during the initial mount) we send it to the operator
+    // This may call `setValue` which schedules an update
+    if (!isInitial) {
+      subscription.current.subject.next(input);
+    }
+  }, [input]);
+
+  return [subscription.current.value, subscription.current.subject.next];
 };
 
-export const useStreamValue = <T, R>(
-  fn: Operator<T, R>,
-  input: T,
-  init: R
-): R => useSubjectValue<T, R>(fn, input, init)[0];
+const observe = <R, T>(
+  operator: Operator<T, R>,
+  subscription: State<R, T>,
+  shouldScheduleTeardown: boolean
+) => {
+  // Start the subscription using the subject and operator
+  const { unsubscribe } = pipe(
+    operator(subscription.subject.source),
+    subscribe((value: R) => subscription.onValue(value))
+  );
+
+  // Update the current teardown to now be the subscription's unsubcribe function
+  subscription.teardown = unsubscribe as TeardownFn;
+
+  // See (1): We schedule a teardown on mount that is cancelled by useLayoutEffect,
+  // unless we're not expecting effects to run at all and the component not to be
+  // rendered, which means this callback won't be cancelled and will unsubscribe.
+  if (shouldScheduleTeardown) {
+    subscription.task = scheduleCallback(
+      getPriorityLevel(),
+      subscription.teardown
+    );
+  }
+};
