@@ -34,7 +34,7 @@ Wonka streams can additionally be synchronous or asynchronous, so integrating th
 React's updates, while taking advantage of synchronous results is hard, and especially complicated with
 Concurrent Mode.
 
-This library exposes a two hooks to solve this problem, **useOperator** and **useOperatorValue**.
+This library exposes two hooks to solve this problem, **useOperator** and **useOperatorValue**.
 The latter is just a convenience alias for the first.
 
 ## API
