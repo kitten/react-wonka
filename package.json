@@ -67,7 +67,7 @@
     "terser": "^4.6.2",
     "ts-jest": "^24.3.0",
     "typescript": "^3.7.4",
-    "wonka": "^4.0.3"
+    "wonka": "^4.0.7"
   },
   "prettier": {
     "singleQuote": true,

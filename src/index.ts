@@ -69,15 +69,27 @@ export const useOperator = <T, R>(
 
   // On mount, subscribe to the operator using the subject and schedule a teardown using scheduler (1)
   if (subscription.current.teardown === null) {
-    observe(
-      operator,
-      subscription.current,
-      /* shouldScheduleTeardown */ !isServerSide
+    // Start the subscription using the subject and operator
+    const { unsubscribe } = pipe(
+      operator(subscription.current.subject.source),
+      subscribe((value: R) => subscription.current.onValue(value))
     );
+
     // Send the initial input value to the operator; this may call `onValue` synchronously
     subscription.current.subject.next(input);
-    if (isServerSide && subscription.current.teardown !== null) {
-      (subscription.current.teardown as any)();
+
+    if (isServerSide) {
+      unsubscribe();
+    } else {
+      // Update the current teardown to now be the subscription's unsubcribe function
+      subscription.current.teardown = unsubscribe as TeardownFn;
+      // See (1): We schedule a teardown on mount that is cancelled by useLayoutEffect,
+      // unless we're not expecting effects to run at all and the component not to be
+      // rendered, which means this callback won't be cancelled and will unsubscribe.
+      subscription.current.task = scheduleCallback(
+        getPriorityLevel(),
+        subscription.current.teardown
+      );
     }
   }
 
@@ -108,11 +120,10 @@ export const useOperator = <T, R>(
     // If the subscription got cancelled, which may happen during long suspense phases (?),
     // we restart it here without scheduling a teardown
     if (subscription.current.teardown === null) {
-      observe(
-        operator,
-        subscription.current,
-        /* shouldScheduleTeardown */ false
-      );
+      subscription.current.teardown = pipe(
+        operator(subscription.current.subject.source),
+        subscribe(setValue)
+      ).unsubscribe as TeardownFn;
     }
 
     // If the input value has changed (except during the initial mount) we send it to the operator
@@ -123,29 +134,4 @@ export const useOperator = <T, R>(
   }, [input]);
 
   return [subscription.current.value, subscription.current.subject.next];
-};
-
-const observe = <R, T>(
-  operator: Operator<T, R>,
-  subscription: State<R, T>,
-  shouldScheduleTeardown: boolean
-) => {
-  // Start the subscription using the subject and operator
-  const { unsubscribe } = pipe(
-    operator(subscription.subject.source),
-    subscribe((value: R) => subscription.onValue(value))
-  );
-
-  // Update the current teardown to now be the subscription's unsubcribe function
-  subscription.teardown = unsubscribe as TeardownFn;
-
-  // See (1): We schedule a teardown on mount that is cancelled by useLayoutEffect,
-  // unless we're not expecting effects to run at all and the component not to be
-  // rendered, which means this callback won't be cancelled and will unsubscribe.
-  if (shouldScheduleTeardown) {
-    subscription.task = scheduleCallback(
-      getPriorityLevel(),
-      subscription.teardown
-    );
-  }
 };
