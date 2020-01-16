@@ -15,7 +15,7 @@ import {
   CallbackNode,
   unstable_scheduleCallback as scheduleCallback,
   unstable_cancelCallback as cancelCallback,
-  unstable_getCurrentPriorityLevel as getPriorityLevel,
+  unstable_IdlePriority as idlePriority,
 } from 'scheduler';
 
 type TeardownFn = () => void;
@@ -87,7 +87,7 @@ export const useOperator = <T, R>(
       // unless we're not expecting effects to run at all and the component not to be
       // rendered, which means this callback won't be cancelled and will unsubscribe.
       subscription.current.task = scheduleCallback(
-        getPriorityLevel(),
+        idlePriority,
         subscription.current.teardown
       );
     }
