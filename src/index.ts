@@ -88,7 +88,12 @@ export const useOperator = <T, R>(
       // rendered, which means this callback won't be cancelled and will unsubscribe.
       subscription.current.task = scheduleCallback(
         idlePriority,
-        subscription.current.teardown
+        () => {
+          if (subscription.current.teardown) {
+            subscription.current.teardown();
+            subscription.current.teardown = null;
+          }
+        }
       );
     }
   }
